@@ -3,7 +3,8 @@ import 'package:expenses_tracker/models/expense.dart';
 
 
 class NewExpense extends StatefulWidget {
-  const NewExpense({super.key});
+  const NewExpense({super.key, required this.onAddExpense});
+  final Function(Expense expense) onAddExpense;
 
   @override
   State<NewExpense> createState() => _NewExpenseState();
@@ -27,7 +28,40 @@ class _NewExpenseState extends State<NewExpense> {
       setState(() {
         _selectedDate = pickedDate;
       });
-
+   }
+   void _submitExpenseData(){
+     final enteredAmount = double.tryParse(_amountController.text);
+     final amountIsInvalid = enteredAmount == null || enteredAmount <= 0 ;
+      if (
+      _titleController.text.trim().isEmpty ||
+          amountIsInvalid  ||
+          _selectedDate  == null  ) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Invalid Input'),
+            content: const Text('Please make sure a valid title, amount, date and category was entered.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Okay'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+      widget.onAddExpense(
+        Expense(
+          title: _titleController.text,
+          amount: enteredAmount,
+          date: _selectedDate!,
+          category: _selectedCategory,
+        ),
+      );
+      Navigator.pop(context);
    }
    @override
    void dispose(){
@@ -38,7 +72,7 @@ class _NewExpenseState extends State<NewExpense> {
   @override
   Widget build(BuildContext context) {
     return  Padding(
-        padding:  EdgeInsets.all(16.0),
+        padding:  EdgeInsets.fromLTRB(16,48,16,16),
          child : Column(
            children: [
              TextField(
@@ -106,12 +140,8 @@ class _NewExpenseState extends State<NewExpense> {
                  ),
                  const SizedBox(width: 8,),
                  ElevatedButton(
-                     onPressed: (){
-                          print(_titleController.text);
-                          print(_amountController.text);
-                          print(_selectedDate);
-                          print(_selectedCategory);
-                     },
+                     onPressed:  _submitExpenseData,
+
                      child: Text('Save Expense'),
                  ),
                ],
@@ -120,4 +150,6 @@ class _NewExpenseState extends State<NewExpense> {
          )
     );
   }
+
+
 }
